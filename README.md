@@ -94,7 +94,7 @@ The mod analyzes all available purchases and:
 
 ## Usage
 
-1. **Access Settings**: Go to Options → Test Mod Settings (at the very bottom at the moment)
+1. **Access Settings**: Go to Options → NovaCookie Settings (at the very bottom at the moment)
 2. **Configure Features**: Enable and configure desired utility features
 3. **Set Keybinds**: Customize toggle keys for manual control
 4. **Monitor Progress**: Watch notifications for automated actions

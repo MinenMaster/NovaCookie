@@ -22,7 +22,7 @@ Game.registerMod("novaccookie", {
             autoUpgrade: null,
         };
 
-        Game.Notify(`Test mod loaded!`, "", [16, 5]);
+        Game.Notify(`NovaCookie loaded!`, "", [16, 5]);
 
         var originalShimmerPop = Game.shimmer.prototype.pop;
         var mod = this;
@@ -71,10 +71,10 @@ Game.registerMod("novaccookie", {
         var mod = this;
         var menuDiv = document.getElementById("menu");
 
-        if (menuDiv && !document.getElementById("testModOptionsSection")) {
+        if (menuDiv && !document.getElementById("NovaCookieOptionsSection")) {
             var section = document.createElement("div");
             section.className = "subsection";
-            section.id = "testModOptionsSection";
+            section.id = "NovaCookieOptionsSection";
             section.style.border = "1px solid #666";
             section.style.margin = "4px";
             section.style.background = "#222";
@@ -85,7 +85,7 @@ Game.registerMod("novaccookie", {
             header.style.padding = "8px";
             header.style.cursor = "pointer";
             header.style.background = "#333";
-            header.innerHTML = "Test Mod Settings ";
+            header.innerHTML = "NovaCookie Settings ";
 
             var toggleButton = document.createElement("span");
             toggleButton.style.cursor = "pointer";
