@@ -6,6 +6,7 @@
 	"ModVersion": 1.0,
 	"GameVersion": 2.053,
 	"Date": "5/07/2025",
-	"Dependencies": [],
-	"Disabled": 1
+	"Dependencies": ["cookie monster"],
+	"Disabled": 0,
+	"AllowSteamAchievs":1,
 }
