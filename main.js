@@ -1,4 +1,4 @@
-Game.registerMod("test mod", {
+Game.registerMod("novaccookie", {
     init: function () {
         this.goldenCookieCount = 0;
 

@@ -8,5 +8,5 @@
 	"Date": "5/07/2025",
 	"Dependencies": ["cookie monster"],
 	"Disabled": 0,
-	"AllowSteamAchievs":1,
+	"AllowSteamAchievs": 1
 }
