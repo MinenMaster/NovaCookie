@@ -300,12 +300,6 @@ Game.registerMod("novaccookie", {
 
         document.addEventListener("keydown", keyListener, true);
     },
-    toggleSetting: function (settingKey) {
-        this.settings[settingKey] = !this.settings[settingKey];
-
-        this.stopAutoFeatures();
-        this.startAutoFeatures();
-    },
     getKeyName: function (keyCode) {
         var keyNames = {
             8: "Backspace",
@@ -410,6 +404,12 @@ Game.registerMod("novaccookie", {
     toggleOptionsMenu: function () {
         this.settings.showOptionsMenu = !this.settings.showOptionsMenu;
         Game.UpdateMenu();
+    },
+    toggleSetting: function (settingKey) {
+        this.settings[settingKey] = !this.settings[settingKey];
+
+        this.stopAutoFeatures();
+        this.startAutoFeatures();
     },
     startAutoFeatures: function () {
         var mod = this;
