@@ -426,48 +426,8 @@ Game.registerMod("novaccookie", {
 
         if (this.settings.autoStockTrading) {
             this.intervals.autoStockTrading = setInterval(function () {
-                var S = Game.ObjectsById[5].minigame;
-                if (S) {
-                    var stock_points = {
-                        0: [4.296752808225449, 74.29675280822545],
-                        1: [7.101098120866283, 69.60109812086628],
-                        2: [6.056790259536228, 76.05679025953623],
-                        3: [6.967195132086488, 91.96719513208649],
-                        4: [7.693608673653188, 97.69360867365319],
-                        5: [4.866925452745392, 84.86692545274539],
-                        6: [8.150600348757706, 93.1506003487577],
-                        7: [6.253081399632322, 116.25308139963232],
-                        8: [7.384369208292071, 119.88436920829207],
-                        9: [40.153257584487505, 127.6532575844875],
-                        10: [4.593442003495852, 134.59344200349585],
-                        11: [27.99021441180213, 142.99021441180213],
-                        12: [48.14629756608133, 138.14629756608133],
-                        13: [33.07745904023403, 138.07745904023403],
-                        14: [74.15591670938426, 144.15591670938426],
-                        15: [69.83242089997663, 142.33242089997663],
-                        16: [54.58890361704482, 167.08890361704482],
-                    };
-                    for (let i = 0; i < 17; i++) {
-                        if (
-                            stock_points[i][0] > S.goodsById[i].val &&
-                            S.getGoodMaxStock(S.goodsById[i]) -
-                                S.goodsById[i].stock >
-                                0
-                        ) {
-                            S.buyGood(
-                                i,
-                                S.getGoodMaxStock(S.goodsById[i]) -
-                                    S.goodsById[i].stock
-                            );
-                        } else if (
-                            stock_points[i][1] < S.goodsById[i].val &&
-                            S.goodsById[i].stock > 0
-                        ) {
-                            S.sellGood(i, S.goodsById[i].stock);
-                        }
-                    }
-                }
-            }, 60000);
+                mod.performStockTrading();
+            }, 100);
         }
 
         if (this.settings.autoclickBc) {
@@ -540,36 +500,9 @@ Game.registerMod("novaccookie", {
             }
         }
     },
-    getAllBlueItems: function (buildings1) {
+    getAllBlueUpgrades: function () {
         // TODO: change prop names
-        var allBlueItems = [];
-
-        console.log("getAllBlueItems called, buildings1:", !!buildings1);
-
-        if (buildings1) {
-            Object.keys(buildings1).forEach(function (buildingName) {
-                var building = Game.Objects[buildingName];
-                var buildingData = buildings1[buildingName];
-                console.log(
-                    "Checking building:",
-                    buildingName,
-                    "colour:",
-                    buildingData.colour,
-                    "price:",
-                    building ? building.price : "N/A"
-                );
-
-                if (building && buildingData.colour === "Blue") {
-                    var blueBuilding = {
-                        name: buildingName,
-                        price: building.price,
-                        affordable: building.price <= Game.cookies,
-                    };
-                    allBlueItems.push(blueBuilding);
-                    console.log("Found blue building:", blueBuilding);
-                }
-            });
-        }
+        var allBlueUpgrades = [];
 
         console.log(
             "Checking upgrades, UpgradesInStore length:",
@@ -592,8 +525,10 @@ Game.registerMod("novaccookie", {
                 console.log(
                     "Checking upgrade:",
                     upgrade.name,
-                    "cmUpgrade:",
+                    "cmUpgrade?:",
                     !!cmUpgrade,
+                    "cmUpgrade:",
+                    cmUpgrade ? cmUpgrade : "N/A",
                     "colour:",
                     cmUpgrade ? cmUpgrade.colour : "N/A"
                 );
@@ -604,47 +539,34 @@ Game.registerMod("novaccookie", {
                         price: upgrade.getPrice(),
                         affordable: upgrade.getPrice() <= Game.cookies,
                     };
-                    allBlueItems.push(blueUpgrade);
+                    allBlueUpgrades.push(blueUpgrade);
                     console.log("Found blue upgrade:", blueUpgrade);
                 }
             }
         }
 
-        console.log("getAllBlueItems returning:", allBlueItems.length, "items");
-        return allBlueItems;
+        console.log(
+            "getAllBlueUpgrades returning:",
+            allBlueUpgrades.length,
+            "items"
+        );
+        return allBlueUpgrades;
     },
-    getAllGreenItems: function (buildings1) {
+    getAllGreenItems: function () {
         var allGreenItems = [];
 
-        if (buildings1) {
-            Object.keys(buildings1).forEach(function (buildingName) {
-                var building = Game.Objects[buildingName];
-                if (building && buildings1[buildingName].colour === "Green") {
+        if (window.CookieMonsterData && window.CookieMonsterData.Objects1) {
+            var items = window.CookieMonsterData.Objects1;
+            Object.keys(items).forEach(function (itemName) {
+                var item = Game.Objects[itemName];
+                if (item && items[itemName].colour === "Green") {
                     allGreenItems.push({
-                        name: buildingName,
-                        price: building.price,
-                        affordable: building.price <= Game.cookies,
+                        name: itemName,
+                        price: item.price,
+                        affordable: item.price <= Game.cookies,
                     });
                 }
             });
-        }
-
-        if (
-            Game.UpgradesInStore &&
-            window.CookieMonsterData &&
-            window.CookieMonsterData.Upgrades
-        ) {
-            for (var i = 0; i < Game.UpgradesInStore.length; i++) {
-                var upgrade = Game.UpgradesInStore[i];
-                var cmUpgrade = window.CookieMonsterData.Upgrades[upgrade.name];
-                if (cmUpgrade && cmUpgrade.colour === "Green") {
-                    allGreenItems.push({
-                        name: upgrade.name,
-                        price: upgrade.getPrice(),
-                        affordable: upgrade.getPrice() <= Game.cookies,
-                    });
-                }
-            }
         }
 
         return allGreenItems;
@@ -693,10 +615,13 @@ Game.registerMod("novaccookie", {
         );
 
         var buildings1 = window.CookieMonsterData.Objects1;
-        // TODO: implement buildings10 and buildings100
-        var upgradesData = window.CookieMonsterData.Upgrades;
+        var buildings10 = window.CookieMonsterData.Objects10;
+        var buildings100 = window.CookieMonsterData.Objects100;
+        var upgrades = window.CookieMonsterData.Upgrades;
 
         console.log("Buildings1 data:", buildings1);
+        console.log("Buildings10 data:", buildings10);
+        console.log("Buildings100 data:", buildings100);
         console.log(
             "Buildings1 keys:",
             buildings1 ? Object.keys(buildings1) : "undefined"
@@ -707,9 +632,7 @@ Game.registerMod("novaccookie", {
         );
         console.log(
             "CookieMonsterData.Upgrades sample:",
-            window.CookieMonsterData.Upgrades
-                ? Object.keys(window.CookieMonsterData.Upgrades).slice(0, 5)
-                : "undefined"
+            upgrades ? Object.keys(upgrades).slice(0, 5) : "undefined"
         );
 
         var availableBuildings = [];
@@ -718,15 +641,63 @@ Game.registerMod("novaccookie", {
         if (buildings1) {
             Object.keys(buildings1).forEach(function (buildingName) {
                 var building = Game.Objects[buildingName];
-                if (building && building.price <= Game.cookies) {
+                if (
+                    building &&
+                    buildings1[buildingName].price <= Game.cookies
+                ) {
                     availableBuildings.push({
                         type: "building",
-                        name: buildingName,
-                        price: building.price,
+                        name: buildingName + " (x1)",
+                        quantity: 1,
+                        price: buildings1[buildingName].price,
                         colour: buildings1[buildingName].colour,
                         pp: buildings1[buildingName].pp,
                         buy: function () {
-                            building.buy();
+                            building.buy(1);
+                        },
+                    });
+                }
+            });
+        }
+
+        if (buildings10) {
+            Object.keys(buildings10).forEach(function (buildingName) {
+                var building = Game.Objects[buildingName];
+                if (
+                    building &&
+                    buildings10[buildingName].price <= Game.cookies
+                ) {
+                    availableBuildings.push({
+                        type: "building",
+                        name: buildingName + " (x10)",
+                        quantity: 10,
+                        price: buildings10[buildingName].price,
+                        colour: buildings10[buildingName].colour,
+                        pp: buildings10[buildingName].pp,
+                        buy: function () {
+                            building.buy(10);
+                        },
+                    });
+                }
+            });
+        }
+
+        if (buildings100) {
+            Object.keys(buildings100).forEach(function (buildingName) {
+                var building = Game.Objects[buildingName];
+                if (
+                    building &&
+                    buildings100[buildingName].price <= Game.cookies
+                ) {
+                    availableBuildings.push({
+                        type: "building",
+                        name: buildingName + " (x100)",
+                        quantity: 100,
+                        price: buildings100[buildingName].price,
+                        colour: buildings100[buildingName].colour,
+                        pp: buildings100[buildingName].pp,
+                        buy: function () {
+                            building.buy(100);
                         },
                     });
                 }
@@ -831,15 +802,13 @@ Game.registerMod("novaccookie", {
         }
 
         var colorPriority = {
+            Gray: 0,
             Blue: 1,
             Green: 2,
             Yellow: 3,
             Orange: 4,
             Red: 5,
             Purple: 6,
-            Gray: 7,
-            Pink: 8,
-            Brown: 9,
         };
 
         allPurchases.sort(function (a, b) {
@@ -898,8 +867,10 @@ Game.registerMod("novaccookie", {
                     // TODO: maybe add smth like "include gray items" setting
                     var shouldWaitForBlue = false;
                     console.log("Checking if we can wait for blue items...");
-                    var allBlueItems = mod.getAllBlueItems(upgradesData);
-                    var unaffordableBlue = allBlueItems.filter(function (item) {
+                    var allBlueUpgrades = mod.getAllBlueUpgrades();
+                    var unaffordableBlue = allBlueUpgrades.filter(function (
+                        item
+                    ) {
                         return !item.affordable;
                     });
 
@@ -950,9 +921,9 @@ Game.registerMod("novaccookie", {
             if (mod.settings.autoUpgradeWaitForBlue) {
                 console.log("Checking if we should wait for blue items...");
                 var shouldWaitForBlue = false;
-                var allBlueItems = mod.getAllBlueItems(upgradesData);
+                var allBlueUpgrades = mod.getAllBlueUpgrades();
 
-                var affordableBlue = allBlueItems.filter(function (item) {
+                var affordableBlue = allBlueUpgrades.filter(function (item) {
                     return item.affordable;
                 });
 
@@ -967,7 +938,9 @@ Game.registerMod("novaccookie", {
                         toBuy ? toBuy.name : "None"
                     );
                 } else {
-                    var unaffordableBlue = allBlueItems.filter(function (item) {
+                    var unaffordableBlue = allBlueUpgrades.filter(function (
+                        item
+                    ) {
                         return !item.affordable;
                     });
 
@@ -1062,6 +1035,155 @@ Game.registerMod("novaccookie", {
             }
         } else {
             console.log("No item selected for purchase");
+        }
+    },
+    performStockTrading: function () {
+        var bankBuilding = Game.ObjectsById[5];
+        if (!bankBuilding || !bankBuilding.minigame) {
+            return;
+        }
+
+        var stockMarket = bankBuilding.minigame;
+
+        // TODO: make this configurable
+        var stockSettings = {
+            0: { name: "Cereals", symbol: "CRL", buyBelow: 4.5, sellAbove: 75 },
+            1: {
+                name: "Chocolate",
+                symbol: "CHC",
+                buyBelow: 7.5,
+                sellAbove: 120,
+            },
+            2: { name: "Butter", symbol: "BTR", buyBelow: 6.5, sellAbove: 85 },
+            3: { name: "Sugar", symbol: "SUG", buyBelow: 7.5, sellAbove: 92 },
+            4: { name: "Nuts", symbol: "NUT", buyBelow: 8, sellAbove: 98 },
+            5: { name: "Salt", symbol: "SLT", buyBelow: 5, sellAbove: 100 },
+            6: { name: "Vanilla", symbol: "VNL", buyBelow: 8.5, sellAbove: 93 },
+            7: { name: "Eggs", symbol: "EGG", buyBelow: 6.5, sellAbove: 116 },
+            8: {
+                name: "Cinnamon",
+                symbol: "CNM",
+                buyBelow: 7.5,
+                sellAbove: 120,
+            },
+            9: { name: "Cream", symbol: "CRM", buyBelow: 40, sellAbove: 128 },
+            10: { name: "Jam", symbol: "JAM", buyBelow: 5, sellAbove: 135 },
+            11: {
+                name: "White chocolate",
+                symbol: "WCH",
+                buyBelow: 28,
+                sellAbove: 143,
+            },
+            12: { name: "Honey", symbol: "HNY", buyBelow: 48, sellAbove: 138 },
+            13: {
+                name: "Cookies",
+                symbol: "CKI",
+                buyBelow: 33,
+                sellAbove: 138,
+            },
+            14: {
+                name: "Recipes",
+                symbol: "RCP",
+                buyBelow: 74,
+                sellAbove: 144,
+            },
+            15: {
+                name: "Subsidiaries",
+                symbol: "SBD",
+                buyBelow: 70,
+                sellAbove: 142,
+            },
+            16: {
+                name: "Publicists",
+                symbol: "PBL",
+                buyBelow: 55,
+                sellAbove: 167,
+            },
+            17: {
+                name: "Your Bakery",
+                symbol: "YOU",
+                buyBelow: 20,
+                sellAbove: 180,
+            },
+        };
+
+        var totalProfit = 0;
+        var transactionsMade = 0;
+
+        for (
+            var stockId = 0;
+            stockId < Math.min(18, stockMarket.goodsById.length);
+            stockId++
+        ) {
+            var stock = stockMarket.goodsById[stockId];
+            var settings = stockSettings[stockId];
+
+            if (!stock || !settings) continue;
+
+            var currentPrice = stock.val;
+            var currentStock = stock.stock;
+            var maxStock = stockMarket.getGoodMaxStock(stock);
+            var availableSlots = maxStock - currentStock;
+
+            if (currentPrice < settings.buyBelow && availableSlots > 0) {
+                var buyAmount = Math.min(availableSlots, 10);
+                var cost = buyAmount * currentPrice;
+
+                // Check if we can afford it
+                if (Game.cookies >= cost) {
+                    try {
+                        stockMarket.buyGood(stockId, buyAmount);
+                        totalProfit -= cost;
+                        transactionsMade++;
+                        console.log(
+                            `Stock Trading: Bought ${buyAmount} ${
+                                settings.symbol
+                            } (${settings.name}) at $${currentPrice.toFixed(
+                                2
+                            )} each`
+                        );
+                    } catch (error) {
+                        console.error(
+                            `Failed to buy ${settings.symbol}:`,
+                            error
+                        );
+                    }
+                }
+            }
+            // Sell logic: price is above sell threshold and we have stock to sell
+            else if (currentPrice > settings.sellAbove && currentStock > 0) {
+                var sellAmount = currentStock; // Sell all stock when profitable
+                var revenue = sellAmount * currentPrice;
+
+                try {
+                    stockMarket.sellGood(stockId, sellAmount);
+                    totalProfit += revenue;
+                    transactionsMade++;
+                    console.log(
+                        `Stock Trading: Sold ${sellAmount} ${
+                            settings.symbol
+                        } (${settings.name}) at $${currentPrice.toFixed(
+                            2
+                        )} each`
+                    );
+                } catch (error) {
+                    console.error(`Failed to sell ${settings.symbol}:`, error);
+                }
+            }
+        }
+
+        // Show summary notification if any transactions were made
+        if (transactionsMade > 0) {
+            var profitText =
+                totalProfit >= 0
+                    ? `+$${totalProfit.toFixed(0)}`
+                    : `-$${Math.abs(totalProfit).toFixed(0)}`;
+            Game.Notify(
+                `Stock Trading: ${transactionsMade} transactions`,
+                `Net change: ${profitText}`,
+                [16, 5],
+                3000
+            );
         }
     },
 });
